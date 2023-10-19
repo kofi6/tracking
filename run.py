@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # assert(0), "too many arguments"
     cap = cv2.VideoCapture(0)
     # hog, fixed_window, multiscale
-    tracker = kcftracker.KCFTracker(False, True, True)
+    tracker = kcftracker.KCFTracker(True, True, True)
     detecter= yolo.Yolo
     # if you use hog feature, there will be a short pause after you draw a first boundingbox, that is due to the use of Numba.
 
@@ -141,10 +141,10 @@ if __name__ == '__main__':
                         [:4].strip('.'), (8, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
             # 帧率显示
         image=frame
-        res=matrix_insert(image,tracker.res)
-        cv2.imshow('tracking', res if res is not None else frame)  # 更新帧
+        fuse_img=matrix_insert(image,tracker.res)
+        cv2.imshow('tracking', fuse_img if fuse_img is not None else frame)  # 更新帧
         #print(tracker.res)
-        print("res" if res is not None else "frame")
+        #print("res" if res is not None else "frame")
         c = cv2.waitKey(inteval) & 0xFF  # 将获取到的值赋给c,使用位掩码确保值在0到255之间
         if c == 27 or c == ord('q'):
             break

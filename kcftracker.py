@@ -249,6 +249,7 @@ class KCFTracker:
     def detect(self, z, x):
         k = self.gaussianCorrelation(x, z)
         res = real(fftd(complexMultiplication(self._alphaf, fftd(k)), True))
+        res = (res - res.min())/(res.max()-res.min())
         res_uint = (res * 255).astype(np.uint8)
         #cv2.imshow('test', res_uint)
         self.res=res_uint
