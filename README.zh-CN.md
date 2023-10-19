@@ -11,3 +11,6 @@ KCF原作者https://www.robots.ox.ac.uk/~joao/#research
 # yolo
 使用yolov5m模型作为分类模型
 yolo：https://github.com/ultralytics/yolov5
+
+# 问题
+yolo和HOG不能同时开启，正在修复
