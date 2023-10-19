@@ -23,7 +23,7 @@ duration = 0.01  # 持续时间，此处影响初始帧率
 
 def matrix_insert(src1,src2):
     if src2 is not None:
-        row,col=src1.shape[0]-src1.shape[0],0
+        row,col=src1.shape[0]-src2.shape[0],0
         #roi = src2[y:y+height, x:x+width]  # 指定感兴趣区域
         src1[row:row+src2.shape[0], col:col+src2.shape[1],0] = src2
         src1[row:row+src2.shape[0], col:col+src2.shape[1],1] = src2
