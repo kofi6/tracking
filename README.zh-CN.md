@@ -3,7 +3,8 @@
 # 环境
 anaconda 3，其余环境在yolo_py39.yml当中
 # KCF
-KCF算法来自于https://github.com/LCorleone/KCF_py3，略有修改
+KCF算法来自于https://github.com/LCorleone/KCF_py3
+略有修改
 
 KCF原作者https://www.robots.ox.ac.uk/~joao/#research
 
