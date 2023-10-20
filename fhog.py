@@ -165,7 +165,7 @@ def getFeatureMaps(image, k, mapp):
     alfa = np.dstack((maxi % NUM_SECTOR, maxi)) ###
     '''
     # 200x speedup
-    r, alfa = func1(dx, dy, boundary_x, boundary_y, height, width, numChannels)  # with @jit
+    r, alfa = func1(dx, dy, boundary_x, boundary_y, height, width, numChannels) # with @jit
     # ~0.001s
 
     nearest = np.ones((k), np.int)
