@@ -294,9 +294,10 @@ class KCFTracker:
         p[1] -= res.shape[0] / 2.
 
         # 归一化处理，此处将高斯响应矩阵变为离散高斯分布点。
+
         matrix_sum = np.sum(res)
-        res = (res - res.min())/(res.max()-res.min())
         res = res/matrix_sum
+        res = (res - res.min())/(res.max()-res.min())
 
         res_uint = (res * 255).astype(np.uint8)
         # cv2.imshow('test', res_uint)
