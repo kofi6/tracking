@@ -3,12 +3,12 @@ import torch
 from pathlib import Path
 
 # 加载YOLOv5模型
-model = torch.hub.load('ultralytics/yolov5', 'yolov5m')
 
 
 class Yolo:
     def __init__(self, frame=None) -> None:
         assert frame, "图像传入错误"
+        model = torch.hub.load('ultralytics/yolov5', 'yolov5m')
 
     def detect(frame):
         while True:

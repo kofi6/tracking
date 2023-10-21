@@ -324,7 +324,7 @@ class KCFTracker:
             (self.size_patch[0], self.size_patch[1], 2), np.float32)
         self.train(self._tmpl, 1.0)
 
-    def update(self, image):
+    def update(self, image, judge):
         if (self._roi[0] + self._roi[2] <= 0):
             self._roi[0] = -self._roi[2] + 1
         if (self._roi[1] + self._roi[3] <= 0):
@@ -377,6 +377,9 @@ class KCFTracker:
         assert (self._roi[2] > 0 and self._roi[3] > 0)
 
         x = self.getFeatures(image, 0, 1.0)
-        self.train(x, self.interp_factor)
+        if judge:
+            self.train(x, self.interp_factor)
+        else:
+            print("目标丢失")
 
         return self._roi
