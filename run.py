@@ -1,19 +1,24 @@
 import cv2
 from time import time
-
-import kcftracker
 import yolo
 import criterion
+import modelMannger
 
-useYolo = False
-res = None
-judge = True
-
-status = 4
+# [config]
+useYolo = True
+status = 0
 # 0 selectingObject
 # 1 initTracking
 # 2 onTracking
 # 3 pause
+
+# parameter init
+res = None
+judge = True
+ix, iy, cx, cy = -1, -1, -1, -1
+w, h = 0, 0
+inteval = 1  # 回调函数检测间隔时间
+duration = 0.01  # 持续时间，此处影响初始帧率
 
 
 def draw_boundingbox(event, x, y, p, q):
@@ -59,22 +64,14 @@ def matrix_insert(src1, src2):
         return None
 
 
-ix, iy, cx, cy = -1, -1, -1, -1
-w, h = 0, 0
-inteval = 1  # 回调函数检测间隔时间
-duration = 0.01  # 持续时间，此处影响初始帧率
-
-
 if __name__ == '__main__':
-
-    cap = cv2.VideoCapture(0)
     cv2.namedWindow('tracking')
-    # config hog, fixed_window, multiscale
-    # if you use hog feature, there will be a short pause after you draw a first boundingbox, that is due to the use of Numba.
-    tracker = kcftracker.KCFTracker(False, True, True)
+    cap = cv2.VideoCapture(0)
+    tracker = modelMannger.modelA()
+    modelC = modelMannger.modelC()
 
     if useYolo:
-        detecter = yolo.Yolo
+        detecter = yolo.Yolo()
     else:
         cv2.setMouseCallback('tracking', draw_boundingbox)
 
@@ -82,34 +79,37 @@ if __name__ == '__main__':
 
         if res is not None:
             judge = criterion.Criterion(res)
+            if not judge:
+                print("目标丢失")
+                w, h, ix, iy, class_name = modelC.reSelect(
+                    tracker, detecter, frame)
+                cv2.rectangle(frame, (ix, iy), (ix + w, iy + h),
+                              (0, 255, 255), 2)
+                tracker.init([ix, iy, w, h], frame)
         ret, frame = cap.read()
-        # cv.VideoCapture.read() -> retval, image
-        # retval:返回值,bool
-        # image:array,图像RGB
 
         if not ret:
             break
-        if status == 0:  # mouse init
-            cv2.rectangle(frame, (ix, iy), (cx, cy), (0, 255, 255), 1)
-        elif status == 1:  # yolo init
+        if status == 0:  # draw box
             if useYolo:
                 Object = detecter.detect(frame)
-                ix, iy, w, h, class_name = Object
+                w, h, ix, iy, class_name = Object[0]
+                modelC.init([ix, iy, w, h], frame)
+                status = 1  # 如果没有开启yolo，则状态转换在drawbox中进行。不写进来是因为左键按下时需要等待
+            cv2.rectangle(frame, (ix, iy), (cx, cy), (0, 255, 255), 1)
+        elif status == 1:  # initracking
             cv2.rectangle(frame, (ix, iy), (ix + w, iy + h), (0, 255, 255), 2)
             tracker.init([ix, iy, w, h], frame)  # 追踪器初始化，输入当前框与当前帧
             status = 2
         elif status == 2:  # ontracking
             t0 = time()
             boundingbox = tracker.update(frame, judge)
-            t1 = time()  # 记录追踪器计算时间
-
-            boundingbox = list(map(int, boundingbox))  # 数据类型的转换，理解时可以忽略
+            t1 = time()
+            boundingbox = list(map(int, boundingbox))
             cv2.rectangle(frame, (boundingbox[0], boundingbox[1]), (
                 boundingbox[0] + boundingbox[2], boundingbox[1] + boundingbox[3]), (0, 255, 255), 1)  # 更新追踪盒位置
             duration = 0.8 * duration + 0.2 * \
                 (t1 - t0)  # 使用平滑帧率代替真实帧率，让用户能更直观地评估当前性能
-        elif status == 3:  # pause
-            break  # 如果状态为3，则将挂起
 
         image = frame
         res = tracker.res

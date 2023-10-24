@@ -1,6 +1,11 @@
 import numpy as np
 import cv2
 import fhog
+
+hog = False
+fixed_window = True
+multiscale = False
+
 # ffttools
 
 
@@ -19,7 +24,7 @@ def imag(img):
     return img[:, :, 1]
 
 
-def complexMultiplication(a, b):
+def complexMultiplication(a, b):  # 复数相乘
     res = np.zeros(a.shape, a.dtype)
 
     res[:, :, 0] = a[:, :, 0] * b[:, :, 0] - a[:, :, 1] * b[:, :, 1]
@@ -103,7 +108,7 @@ def subwindow(img, window, borderType=cv2.BORDER_CONSTANT):
 
 # KCF tracker
 class KCFTracker:
-    def __init__(self, hog=False, fixed_window=True, multiscale=False):
+    def __init__(self):
         self.lambdar = 0.0001   # regularization
         self.padding = 2.5   # extra area surrounding the target
         self.output_sigma_factor = 0.125   # 高斯目标的带宽
@@ -117,7 +122,7 @@ class KCFTracker:
             self.cell_size = 4   # HOG cell size
             self._hogfeatures = True
         else:  # raw gray-scale image # aka CSK tracker
-            self.interp_factor = 0.075
+            self.interp_factor = 0.075  # 写死的
             self.sigma = 0.2
             self.cell_size = 1
             self._hogfeatures = False
@@ -278,6 +283,7 @@ class KCFTracker:
     def detect(self, z, x):
         k = self.gaussianCorrelation(x, z)
         res = real(fftd(complexMultiplication(self._alphaf, fftd(k)), True))
+
         # 找到res中最大值的位置和最大值的坐标，pv(peak value)最大值数值，pi最大值坐标
         _, pv, _, pi = cv2.minMaxLoc(res)
 
@@ -295,8 +301,6 @@ class KCFTracker:
 
         # 归一化处理，此处将高斯响应矩阵变为离散高斯分布点。
 
-        matrix_sum = np.sum(res)
-        res = res/matrix_sum
         res = (res - res.min())/(res.max()-res.min())
 
         res_uint = (res * 255).astype(np.uint8)
@@ -305,14 +309,15 @@ class KCFTracker:
 
         return p, pv
 
-    def train(self, x, train_interp_factor):
+    def train(self, x, train_interp_factor):  # x 模板 train_interp_factor 学习率
         k = self.gaussianCorrelation(x, x)
-        alphaf = complexDivision(self._prob, fftd(k) + self.lambdar)
+        alphaf = complexDivision(self._prob, fftd(
+            k) + self.lambdar)  # 复数除法，计算当前α
 
         self._tmpl = (1 - train_interp_factor) * \
-            self._tmpl + train_interp_factor * x
+            self._tmpl + train_interp_factor * x  # 更新x
         self._alphaf = (1 - train_interp_factor) * \
-            self._alphaf + train_interp_factor * alphaf
+            self._alphaf + train_interp_factor * alphaf  # 更新α
 
     def init(self, roi, image):
         self._roi = list(map(float, roi))
@@ -379,7 +384,5 @@ class KCFTracker:
         x = self.getFeatures(image, 0, 1.0)
         if judge:
             self.train(x, self.interp_factor)
-        else:
-            print("目标丢失")
 
         return self._roi
