@@ -25,6 +25,7 @@ def overlap(pt1, pt2, pt3, pt4):
 
     # 计算重叠面积
     overlap_area = width * height
+    overlap_area = overlap_area/(abs(ax1-ax2)*abs(ay1-ay2))
 
     # 如果没有重叠，重叠面积为0
     if width <= 0 or height <= 0:
